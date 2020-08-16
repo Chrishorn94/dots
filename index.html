@@ -1,0 +1,203 @@
+<html>
+<head>
+<style>
+
+/* td { border: 1px solid grey; border-collapse: collapse; } */
+
+* {
+    font-size: 40px;
+}
+.box {
+    width: 50px;
+    height:50px;
+/*     background-color: yellow; */
+    text-align: middle;
+    text-align: center;
+}
+
+.thin { 
+    width: 5px; 
+    height:5px; 
+    background-color: #ddd;
+}
+
+.thin:hover {
+    background-color: pink;
+}
+
+.thin.line {
+    background-color: #333; 
+}
+
+.playerScore {
+    display: inline-block;
+    border: 2px solid blue;
+    padding: 15px;
+}
+.scoreTitle {
+    margin: auto;
+    width: 6ex;
+}
+
+.playerScoreContainer {
+    margin: auto;
+    width: 12ex;    
+}
+.scoreline {
+    width: 12ex;
+    border: 1px solid yellow;
+    display: block
+}
+
+.A {
+    background-color: #9c9;
+}
+.B {
+    background-color: #cc9;
+}
+
+.game {
+    width: 24ex;
+    border: 1px solid yellow;
+}
+</style>
+
+</head>
+<body>
+
+<div class=game>
+    <div id=scormiddleeline  >
+        <div class=scoreTitle>Scores</div>
+        <div class=playerScoreContainer>
+            <div class=playerScore id=scoresA ></div>
+            <div class=playerScore id=scoresB ></div>
+        </div>
+    </div>
+    <h1 id=turnmsg ></h1>
+
+    <div id=board></div>
+</div>
+<script>
+
+let turn=0;
+const x=6;
+const y=6;
+const id="board";
+const scores = {A:0,B:0}
+
+
+function lineClick(e) {
+    const el = e.srcElement;
+    console.log(el, el.dataset.r, el.dataset.c);
+    el.classList.add("line");
+    if (checkBoxes() == false) {
+        nextTurn()
+    } else {
+        updateScores();
+    }
+}
+
+function checkBoxes() {
+
+    let added = false;
+    const table = document.getElementById("thetable");
+    for (var r=0; r < y*2+1; r++) {
+        row = table.rows[r]
+        for (var c=0; c < x*2+1; c++) {
+            cell=row.cells[c]
+            num = (r*x + c)+1
+            if ( (c % 2 == 0 || r %2 == 0) )  {
+                // line
+            } else {
+                let count = 
+                    (table.rows[r-1].cells[c].classList.contains("line") ? 1 : 0) +
+                    (table.rows[r+1].cells[c].classList.contains("line") ? 1 : 0 )+
+                    (table.rows[r].cells[c-1].classList.contains("line") ? 1 : 0) +
+                    (table.rows[r].cells[c+1].classList.contains("line") ? 1 : 0);
+                
+                if (count == 4) {
+                    if (cell.innerHTML == "") {
+                        cell.innerHTML = turnLetter();
+                        cell.classList.add(turnLetter());
+                        added = true;
+                    }
+                }
+
+            }
+        }
+    }
+    return added;
+}
+
+function updateScores() {
+    const table = document.getElementById("thetable");
+    scores.A = 0;
+    scores.B = 0;
+    for (var r=0; r < y*2+1; r++) {
+        row = table.rows[r]
+        for (var c=0; c < x*2+1; c++) {
+            cell=row.cells[c]
+            num = (r*x + c)+1
+            if ( (c % 2 == 0 || r %2 == 0) )  {
+                // line
+            } else {
+                if (cell.innerHTML != "") {
+                    player = cell.innerHTML;
+                    scores[player]=scores[player]+1;
+                }
+            }
+        }
+    }
+    
+    document.getElementById("scoresA").innerHTML="A: "+scores.A;
+    document.getElementById("scoresB").innerHTML="B: "+scores.B;
+}
+
+function makeTable() {
+    const div = document.getElementById(id);
+    const table = document.createElement("table")
+    table.id="thetable";
+    for (var r=0; r < y*2+1; r++) {
+        row = table.insertRow(r)
+        for (var c=0; c < x*2+1; c++) {
+            cell=row.insertCell(c)
+            num = (r*x + c)+1
+            if ( (c % 2 == 0 || r %2 == 0) )  {
+                if (!(c % 2 == 0 && r %2 == 0)) {
+                    cell.classList.add("thin");
+                    cell.addEventListener('click', lineClick)
+                    cell.dataset.r=r;
+                    cell.dataset.c=c;
+                }
+            } else {
+                cell.classList.add("box");
+            }
+        }
+    }
+    div.appendChild(table)
+}
+
+function nextTurn() {
+    turn = 1 - turn;
+    updateTurnMsg();
+}
+
+function turnLetter() {
+    return letterForPlayer(turn);
+}
+
+function letterForPlayer(player) {
+    return String.fromCharCode(65+player)
+}
+
+
+function updateTurnMsg() {
+    document.getElementById("turnmsg").innerHTML = "It is player "+turnLetter()+"'s turn.";
+}
+
+makeTable();
+
+updateTurnMsg();
+updateScores();
+
+</script>
